@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: event-service
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/eventdb}
+    username: postgres
+    password: Ghi455678
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    enabled: true
+    locations:
+      - db/migration
+
+server:
+  port: 8081

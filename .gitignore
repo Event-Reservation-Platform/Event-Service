@@ -22,6 +22,7 @@ target/
 ### Enviornments ###
 *.env
 .env
+application.yml
 
 ### NetBeans ###
 /nbproject/private/
