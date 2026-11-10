@@ -17,5 +17,4 @@ public class UpdateEventRequest {
     private String location;
     private Instant startsAt;
     private Instant endsAt;
-    private Instant updatedAt;
 }

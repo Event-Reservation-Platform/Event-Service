@@ -3,10 +3,8 @@ package com.platform.eventreservex;
 
 import com.platform.eventreservex.Business.EventService;
 import com.platform.eventreservex.Domain.DTO.Event;
-import com.platform.eventreservex.Exceptions.DeletionFailedException;
-import com.platform.eventreservex.Exceptions.EventNotFoundException;
-import com.platform.eventreservex.Exceptions.PageException;
-import com.platform.eventreservex.Exceptions.SizeException;
+import com.platform.eventreservex.Domain.DTO.UpdateEventRequest;
+import com.platform.eventreservex.Exceptions.*;
 import com.platform.eventreservex.Repository.EventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,6 +88,30 @@ public class EventTests {
 
         assertThrows(DeletionFailedException.class, () -> {
             eventService.removeEvent(2L);
+        });
+    }
+
+    @Test
+    void eventNotFoundWhenTryingToUpdate() {
+
+        UpdateEventRequest request = new UpdateEventRequest(event.getId(), event.getName(), event.getDescription(), event.getLocation(), event.getStartsAt(), event.getEndsAt());
+
+        when(repository.getEventById(2L)).thenReturn(Optional.empty());
+
+        assertThrows(EventNotFoundException.class, () -> {
+            eventService.updateEvent(request);
+        });
+    }
+
+    @Test
+    void shouldThrowAnExceptionIfUpdateFails() {
+
+        UpdateEventRequest request = new UpdateEventRequest(event.getId(), event.getName(), event.getDescription(), event.getLocation(), event.getStartsAt(), event.getEndsAt());
+
+        when(repository.updateEvent(request)).thenReturn(0);
+
+        assertThrows(UpdateFailedException.class, () -> {
+            eventService.updateEvent(request);
         });
     }
 }
