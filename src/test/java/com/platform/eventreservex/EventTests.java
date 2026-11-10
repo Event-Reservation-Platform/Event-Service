@@ -1,11 +1,13 @@
 package com.platform.eventreservex;
 
 
-import Business.EventService;
-import Domain.Event;
-import Exceptions.PageException;
-import Exceptions.SizeException;
-import Repository.EventRepository;
+import com.platform.eventreservex.Business.EventService;
+import com.platform.eventreservex.Domain.DTO.Event;
+import com.platform.eventreservex.Exceptions.DeletionFailedException;
+import com.platform.eventreservex.Exceptions.EventNotFoundException;
+import com.platform.eventreservex.Exceptions.PageException;
+import com.platform.eventreservex.Exceptions.SizeException;
+import com.platform.eventreservex.Repository.EventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,9 +18,9 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 public class EventTests {
@@ -64,5 +66,30 @@ public class EventTests {
         });
 
         verifyNoInteractions(repository);
+    }
+
+    @Test
+    void shouldRetrieveAnEvent() {
+        when(repository.getEventById(1L)).thenReturn(Optional.of(event));
+
+        assertEquals(event, eventService.getEvent(1L));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenEventDoesNotExist(){
+        when(repository.getEventById(2L)).thenReturn(Optional.empty());
+
+        assertThrows(EventNotFoundException.class, () -> {
+            eventService.getEvent(2L);
+        });
+    }
+
+    @Test
+    void shouldThrowAnExceptionIfDeletionFails() {
+        when(repository.removeEvent(2L)).thenReturn(0);
+
+        assertThrows(DeletionFailedException.class, () -> {
+            eventService.removeEvent(2L);
+        });
     }
 }

@@ -1,4 +1,5 @@
-package Domain.DTO;
+package com.platform.eventreservex.Domain.DTO;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,15 +8,17 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-
-@AllArgsConstructor
 @Getter
 @Setter
-public class EventSaveRequest {
+@AllArgsConstructor
+public class Event {
+    private long id;
     private String name;
     private String description;
     private String location;
     private Instant startsAt;
     private Instant endsAt;
     private BigDecimal price;
+    private Instant createdAt;
+    private Instant updatedAt;
 }
