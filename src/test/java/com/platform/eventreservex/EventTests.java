@@ -3,20 +3,26 @@ package com.platform.eventreservex;
 
 import com.platform.eventreservex.Business.EventService;
 import com.platform.eventreservex.Business.Exceptions.*;
+import com.platform.eventreservex.Domain.DTO.EventSaveRequest;
 import com.platform.eventreservex.Domain.Event.Event;
 import com.platform.eventreservex.Domain.DTO.UpdateEventRequest;
 import com.platform.eventreservex.Repository.EventRepository;
+import com.platform.eventreservex.Repository.OutboxRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,15 +32,28 @@ public class EventTests {
     @Mock
     private EventRepository repository;
 
+    @Mock
+    private OutboxRepository outboxRepository;
+
     @InjectMocks
     private EventService eventService;
 
     private Event event;
+    private EventSaveRequest request;
 
     @BeforeEach
     void setUp(){
+        Instant startTime = Instant.now()
+                .plus(Duration.ofDays(1));
+
+        Instant endTime = startTime
+                .plus(Duration.ofHours(3));
+
         BigDecimal price = BigDecimal.valueOf(3.12);
-        event = new Event(1L, "test", "this is a test", "home", Instant.now(), Instant.now(), price , Instant.now(), Instant.now());
+        event = new Event(1L, "test", "this is a test", "home", startTime, endTime, price ,
+                startTime, endTime);
+        request = new EventSaveRequest("", "yte", "home",
+                startTime, endTime, BigDecimal.valueOf(4));
     }
 
     @Test
@@ -114,5 +133,39 @@ public class EventTests {
         assertThrows(UpdateFailedException.class, () -> {
             eventService.updateEvent(request);
         });
+    }
+
+    @Test
+    void shouldThrowAnExceptionIfAnyArgumentIsBlankOrPriceIsZeroOnCreation() {
+        assertThrows(InvalidArgumentException.class, () -> {
+            eventService.createEvent(request);
+        });
+
+        verifyNoInteractions(repository);
+        verifyNoInteractions(outboxRepository);
+    }
+
+    @Test
+    void shouldThrowAnExceptionIfStartTimeBeforeCurrentTimeOnCreation() {
+        request.setName("Test");
+        request.setStartsAt(Instant.now().minus(Duration.ofHours(2)));
+
+        assertThrows(InvalidStartTimeException.class, () -> {
+            eventService.createEvent(request);
+        });
+        verifyNoInteractions(repository);
+        verifyNoInteractions(outboxRepository);
+    }
+
+    @Test
+    void shouldReturnEventIdIfSuccessful() {
+        request.setName("Test");
+
+        when(repository.saveEvent(request)).thenReturn(1L);
+        when(outboxRepository.saveEventToOutbox(request)).thenReturn(1);
+
+        long eventId = eventService.createEvent(request);
+
+        assertEquals(1L, eventId);
     }
 }

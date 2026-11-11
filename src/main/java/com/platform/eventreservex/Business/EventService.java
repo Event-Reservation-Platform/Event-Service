@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -100,6 +102,11 @@ public class EventService {
         if (request.getName().isBlank() || request.getDescription().isBlank() || request.getLocation().isBlank()
                 || request.getPrice().equals(BigDecimal.valueOf(0))) {
             throw new InvalidArgumentException("One or more of the arguments is empty or price is zero");
+        }
+
+        Instant now = Instant.now();
+        if (!request.getStartsAt().isAfter(now)) {
+            throw new InvalidStartTimeException("Start time is before current time");
         }
 
         log.debug("Event Creation of {}.", request.getName());
