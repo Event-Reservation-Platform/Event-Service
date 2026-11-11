@@ -3,6 +3,8 @@ package com.platform.eventreservex.Component;
 
 import com.platform.eventreservex.Domain.Outbox.OutboxEvent;
 import com.platform.eventreservex.Repository.OutboxRepository;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,9 +20,18 @@ import java.util.concurrent.TimeoutException;
 public class OutboxWorker {
     private OutboxRepository repository;
     private OutboxPublisher publisher;
+    private CircuitBreakerRegistry circuitBreakerRegistry;
 
     @Scheduled(fixedDelay = 2000)
     public void publishBatchEvent() {
+
+        CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("rabbitPublisher");
+
+        if (circuitBreaker.getState() == CircuitBreaker.State.OPEN) {
+            log.debug("Circuit breaker is open, skipping outbox polling");
+            return;
+        }
+
         log.debug("Retrieving pending events");
         List<OutboxEvent> pendingEvents = repository.getPendingEvents();
 
@@ -41,14 +52,17 @@ public class OutboxWorker {
             catch (TimeoutException te) {
                 log.error("Request timed out: {}", te.getMessage());
                 Thread.currentThread().interrupt();
+                return;
             }
             catch (InterruptedException ie) {
                 log.error("Request got interrupted: {}", ie.getMessage());
                 Thread.currentThread().interrupt();
+                return;
             }
             catch (ExecutionException ee) {
                 log.error("Execution failed: {}", ee.getMessage());
                 Thread.currentThread().interrupt();
+                return;
             }
         }
     }

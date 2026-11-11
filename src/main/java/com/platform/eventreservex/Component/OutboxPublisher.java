@@ -2,6 +2,7 @@ package com.platform.eventreservex.Component;
 
 
 import com.platform.eventreservex.Domain.Outbox.OutboxEvent;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 public class OutboxPublisher {
     private final RabbitTemplate rabbitTemplate;
 
+    @CircuitBreaker(name = "rabbitPublisher")
     public void publishEvent(OutboxEvent event) throws ExecutionException, InterruptedException, TimeoutException {
         CorrelationData correlationData = new CorrelationData(event.getId().toString());
 
