@@ -1,4 +1,4 @@
-package com.platform.eventreservex.Domain.DTO;
+package com.platform.eventreservex.Domain.Event;
 
 
 import lombok.AllArgsConstructor;

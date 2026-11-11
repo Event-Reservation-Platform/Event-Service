@@ -1,14 +1,18 @@
 package com.platform.eventreservex.Business;
 
 
-import com.platform.eventreservex.Domain.DTO.Event;
+import com.platform.eventreservex.Business.Exceptions.*;
+import com.platform.eventreservex.Domain.Event.Event;
+import com.platform.eventreservex.Domain.DTO.EventSaveRequest;
 import com.platform.eventreservex.Domain.DTO.UpdateEventRequest;
-import com.platform.eventreservex.Exceptions.*;
 import com.platform.eventreservex.Repository.EventRepository;
+import com.platform.eventreservex.Repository.OutboxRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class EventService {
     private final EventRepository repository;
+    private final OutboxRepository outboxRepository;
 
     public List<Event> getEvents(int page, int size) {
         if (page < 1) {
@@ -88,5 +93,27 @@ public class EventService {
         }
 
         log.info("Successful event update. eventId: {}", request.getId());
+    }
+
+    @Transactional
+    public Long createEvent(EventSaveRequest request) {
+        if (request.getName().isBlank() || request.getDescription().isBlank() || request.getLocation().isBlank()
+                || request.getPrice().equals(BigDecimal.valueOf(0))) {
+            throw new InvalidArgumentException("One or more of the arguments is empty or price is zero");
+        }
+
+        log.debug("Event Creation of {}.", request.getName());
+
+        Long eventId = repository.saveEvent(request);
+        int createdRows = outboxRepository.saveEventToOutbox(request);
+
+        if (createdRows != 1) {
+            log.error("Failed to create an event to the outbox. EventID: {} Event Name: {}", eventId, request.getName());
+            throw new OutboxCreationFailedException("Couldn't save the event to the outbox");
+        }
+
+        log.info("Event created successfully. EventID: {}", eventId);
+
+        return eventId;
     }
 }

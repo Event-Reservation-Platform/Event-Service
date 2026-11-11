@@ -1,4 +1,4 @@
-package com.platform.eventreservex.Exceptions;
+package com.platform.eventreservex.Business.Exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;

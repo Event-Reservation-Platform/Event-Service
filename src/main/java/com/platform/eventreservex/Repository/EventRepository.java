@@ -1,13 +1,15 @@
 package com.platform.eventreservex.Repository;
 
 
-import com.platform.eventreservex.Domain.DTO.Event;
+import com.platform.eventreservex.Domain.Event.Event;
+import com.platform.eventreservex.Domain.DTO.EventSaveRequest;
 import com.platform.eventreservex.Domain.DTO.UpdateEventRequest;
 import lombok.AllArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -50,5 +52,24 @@ public class EventRepository {
                 .where(DSL.field(DSL.name("id")).eq(request.getId()))
                 .and(DSL.field(DSL.name("starts_at")).gt(Instant.now()))
                 .execute();
+    }
+
+    public Long saveEvent(EventSaveRequest request) {
+        var id = DSL.field(DSL.name("id"), Long.class);
+        var name = DSL.field(DSL.name("name"), String.class);
+        var description = DSL.field(DSL.name("description"), String.class);
+        var location = DSL.field(DSL.name("location"), String.class);
+        var startsAt = DSL.field(DSL.name("starts_at"), Instant.class);
+        var endsAt = DSL.field(DSL.name("ends_at"), Instant.class);
+        var price = DSL.field(DSL.name("price"), BigDecimal.class);
+
+
+        return dslContext.insertInto(DSL.table(DSL.name("events")))
+                .columns(name, description, location, startsAt, endsAt, price)
+                .values(request.getName(), request.getDescription(), request.getLocation(),
+                        request.getStartsAt(), request.getEndsAt(), request.getPrice())
+                .onConflict(DSL.field(DSL.name("idempotency_key"))).doNothing()
+                .returningResult(id)
+                .fetchOne(id);
     }
 }

@@ -2,9 +2,9 @@ package com.platform.eventreservex;
 
 
 import com.platform.eventreservex.Business.EventService;
-import com.platform.eventreservex.Domain.DTO.Event;
+import com.platform.eventreservex.Business.Exceptions.*;
+import com.platform.eventreservex.Domain.Event.Event;
 import com.platform.eventreservex.Domain.DTO.UpdateEventRequest;
-import com.platform.eventreservex.Exceptions.*;
 import com.platform.eventreservex.Repository.EventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
