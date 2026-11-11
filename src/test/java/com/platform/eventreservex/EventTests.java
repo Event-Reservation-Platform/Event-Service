@@ -96,7 +96,7 @@ public class EventTests {
 
         UpdateEventRequest request = new UpdateEventRequest(event.getId(), event.getName(), event.getDescription(), event.getLocation(), event.getStartsAt(), event.getEndsAt());
 
-        when(repository.getEventById(2L)).thenReturn(Optional.empty());
+        when(repository.getEventById(1L)).thenReturn(Optional.empty());
 
         assertThrows(EventNotFoundException.class, () -> {
             eventService.updateEvent(request);
@@ -108,6 +108,7 @@ public class EventTests {
 
         UpdateEventRequest request = new UpdateEventRequest(event.getId(), event.getName(), event.getDescription(), event.getLocation(), event.getStartsAt(), event.getEndsAt());
 
+        when(repository.getEventById(request.getId())).thenReturn(Optional.of(event));
         when(repository.updateEvent(request)).thenReturn(0);
 
         assertThrows(UpdateFailedException.class, () -> {

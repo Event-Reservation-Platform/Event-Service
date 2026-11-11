@@ -73,8 +73,12 @@ public class EventService {
             throw new EventNotFoundException("Event not found");
         }
 
-        log.debug("Updating event with new event information: id:{} name: {} description: {} location: {} startsAt: {} endsAt: {}",
-                request.getId(), request.getName(), request.getDescription(), request.getLocation(), request.getStartsAt(), request.getEndsAt());
+        if (!request.getEndsAt().isAfter(request.getStartsAt())) {
+            throw new InvalidArgumentException("Event end time must be after start time");
+        }
+
+        log.debug("Updating event with new event information: id:{} name: {}",
+                request.getId(), request.getName());
 
         int updatedRows = repository.updateEvent(request);
 
@@ -83,6 +87,6 @@ public class EventService {
             throw new UpdateFailedException("Unexpected error occurred");
         }
 
-        log.info("Successful update. eventId: {}", request.getId());
+        log.info("Successful event update. eventId: {}", request.getId());
     }
 }

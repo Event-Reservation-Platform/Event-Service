@@ -1,0 +1,19 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: reservex-rabbitmq
+    hostname: reservex-rabbitmq
+    restart: unless-stopped
+    ports:
+    - "127.0.0.1:5672:5672"
+    - "127.0.0.1:15672:15672"
+
+    environment:
+      RABBITMQ_DEFAULT_USER: reservex
+      RABBITMQ_DEFAULT_PASS: Ghi455678@
+
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  rabbitmq_data:
